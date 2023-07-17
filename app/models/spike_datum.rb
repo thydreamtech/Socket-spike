@@ -1,0 +1,2 @@
+class SpikeDatum < ApplicationRecord
+end
