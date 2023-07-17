@@ -1,6 +1,6 @@
 import React, { useState,useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addAppData, updateAfter, updateData } from "../store/action";
+import { addAppData, deleteAfter, deleteEntry, updateAfter, updateData } from "../store/action";
 import _ from "lodash";
 import consumer from "../channels/consumer";
 
@@ -32,7 +32,6 @@ const Spike = () => {
   };
 
   const saveTemplateData = () => {
-    // console.log(path, value)
     dispatch(updateData('updateData', value, path));
   }
   const handleInputChange = (index, fieldName, value) => {
@@ -51,8 +50,14 @@ const Spike = () => {
 
   };
 
-  const handleWebSocketData = (path, value) => {
-    dispatch(updateAfter('updateData', value, path))
+  const handleWebSocketData = (path, value, type) => {
+    if(type === "updateData") {
+      console.log(type, value, path)
+      dispatch(updateAfter('updateData', value, path))
+    } else if (type === "deleteData") {
+      console.log(type, value, path)
+      dispatch(deleteAfter(type, value, path))
+    }
   }
 
   useEffect(() => {
@@ -65,11 +70,12 @@ const Spike = () => {
             .replace(/\['([^']+)'\]/g, ".$1")
             .replace(/\[(\d+)\]/g, ".$1");
         };
-        handleWebSocketData(
-          `configuration${convertPath(data.path)}`,
-          data.value
-        );
-      },
+          handleWebSocketData(
+            `configuration${convertPath(data.path)}`,
+            data.value,
+            data.type
+          );
+      }
     });
     console.log("WebSocket connection established");
 
@@ -78,6 +84,22 @@ const Spike = () => {
       console.log("WebSocket connection closed");
     };
   }, []);
+
+  const delete_view_entry = (deletionIndex, index, fieldName) =>{
+    if(!_.isUndefined(index) && !_.isUndefined(fieldName)) {
+      const convertedPath = fieldName.split(".").reduce((acc, key) => {
+        if (/\d+/.test(key)) {
+          acc += `[${key}]`;
+        } else {
+          acc += `['${key}']`;
+        }
+        return acc;
+      }, "");
+      dispatch(deleteEntry("deleteData", `['template_entry'][${index}]${convertedPath}`, deletionIndex));
+    } else {
+      dispatch(deleteEntry("deleteData", `['template_entry']`, deletionIndex));
+    }
+  }
   if(_.isUndefined(templateData)){
     return null
   }
@@ -135,14 +157,18 @@ const Spike = () => {
                   }
                   placeholder="View Name"
                 />
+                <button onClick={()=>{ delete_view_entry(entryIndex, index, `view_entries`, )}}>Delete View_Entry</button>
               </div>
             ))}
+            <button>Add View_entry</button>
+            <br/>
+            <button onClick={()=>{ delete_view_entry(index)}}>delete Template</button>
           </div>
         </div>
       ))}
-      <button onClick={()=>{saveTemplateData()}}>Save Template</button>
       <br/>
       <button onClick={handleAddRow}>Add Template</button>
+      <button onClick={()=>{saveTemplateData()}}>Save Template</button>
     </div>
   );
 };

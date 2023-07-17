@@ -11,6 +11,8 @@ class SpikeChannel < ApplicationCable::Channel
    case data['type']
    when 'updateData'
     update_entry(data)
+   when 'deleteData'
+    delete_entry(data)
    end
   end
 
@@ -29,10 +31,21 @@ class SpikeChannel < ApplicationCable::Channel
     spike_data.update(configuration: template_data)
     puts "=======#{template_data}=============="
     puts "=========#{spike_data.inspect}========"
-    ActionCable.server.broadcast("spike_channel", {path: path, value: target_value})
+    ActionCable.server.broadcast("spike_channel", {path: path, value: target_value, type: data['type']})
     # spike_data.data['key'] = data['value']
     # spike_data.save
     # updated = SpikeDatum.update_by()
+  end
+
+  def delete_entry(data)
+    puts "======================deletion Recived====================="
+    puts "===============#{data}=========================="
+    spike_data = SpikeDatum.find_by(applicationId: '1')
+    template_data = spike_data.configuration
+    eval("template_data#{data['key']}.delete_at(#{data['index']})")
+    spike_data.update(configuration: template_data)
+    puts "==============Deleted Succesfully========="
+    ActionCable.server.broadcast("spike_channel", {path: data['key'], value: data['index'], type: data['type']})
   end
 end
 
