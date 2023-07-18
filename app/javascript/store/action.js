@@ -34,3 +34,15 @@ export const updateData = (type, value, path) => {
   //   value: value
   // }
 }
+
+export const AddEntry = (path, value) => {
+  consumer.subscriptions.subscriptions[0].send({data: value, key: path, type: "Add_entry"})
+}
+
+export const AddAfter = (type, value, path) => {
+  return {
+    type:type,
+    value: value,
+    path: path
+  }
+}

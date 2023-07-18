@@ -1,8 +1,10 @@
 import React, { useState,useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addAppData, deleteAfter, deleteEntry, updateAfter, updateData } from "../store/action";
+import { AddAfter, addAppData, deleteAfter, deleteEntry, updateAfter, updateData } from "../store/action";
 import _ from "lodash";
 import consumer from "../channels/consumer";
+import ViewEntry from "./Spike/ViewEntry";
+import TemplateEntry from "./Spike/TemplateEntry";
 
 
 const Spike = () => {
@@ -10,6 +12,8 @@ const Spike = () => {
   const branding = _.get(appData,'configuration.branding');
   const applicationId = _.get(appData, 'applicationId');
   const dispatch = useDispatch();
+  const [isAddViewEntry, setIsAddViewEntry] = useState(false);
+  const [isAddTemplate, setIsAddTemplate] = useState(false);
 
   const [path, setPath] = useState();
   const [value, setValue] = useState();
@@ -52,11 +56,11 @@ const Spike = () => {
 
   const handleWebSocketData = (path, value, type) => {
     if(type === "updateData") {
-      console.log(type, value, path)
       dispatch(updateAfter('updateData', value, path))
     } else if (type === "deleteData") {
-      console.log(type, value, path)
       dispatch(deleteAfter(type, value, path))
+    } else if (type ==="Add_entry"){
+      dispatch(AddAfter(type, value, path))
     }
   }
 
@@ -130,45 +134,54 @@ const Spike = () => {
               placeholder="Name"
             />
             {template.view_entries.map((entry, entryIndex) => (
-              <div key={entryIndex}>
-                <label>View ID:</label>
-                <input
-                  type="text"
-                  value={entry.view_id}
-                  onChange={(e) =>
-                    handleInputChange(
-                      index,
-                      `view_entries.${entryIndex}.view_id`,
-                      e.target.value
-                    )
-                  }
-                  placeholder="View ID"
-                />
-                <label>View Name:</label>
-                <input
-                  type="text"
-                  value={entry.name}
-                  onChange={(e) =>
-                    handleInputChange(
-                      index,
-                      `view_entries.${entryIndex}.name`,
-                      e.target.value
-                    )
-                  }
-                  placeholder="View Name"
-                />
-                <button onClick={()=>{ delete_view_entry(entryIndex, index, `view_entries`, )}}>Delete View_Entry</button>
-              </div>
-            ))}
-            <button>Add View_entry</button>
+                <div key={entryIndex}>
+                  <label>View ID:</label>
+                  <input
+                    type="text"
+                    value={entry.view_id}
+                    onChange={(e) =>
+                      handleInputChange(
+                        index,
+                        `view_entries.${entryIndex}.view_id`,
+                        e.target.value
+                      )
+                    }
+                    placeholder="View ID"
+                  />
+                  <label>View Name:</label>
+                  <input
+                    type="text"
+                    value={entry.name}
+                    onChange={(e) =>
+                      handleInputChange(
+                        index,
+                        `view_entries.${entryIndex}.name`,
+                        e.target.value
+                      )
+                    }
+                    placeholder="View Name"
+                  />
+                  <button onClick={()=>{ delete_view_entry(entryIndex, index, `view_entries`, )}}>Delete View_Entry</button>
+                </div>
+              ))}
+            {!isAddViewEntry &&
+              <button onClick={()=>{setIsAddViewEntry(!isAddViewEntry)}}>Add ViewEntry</button>
+            }
+            {isAddViewEntry && <ViewEntry 
+            isAddViewEntry = {isAddViewEntry}
+            setIsAddViewEntry = {setIsAddViewEntry}
+            index = {index}/>}
             <br/>
             <button onClick={()=>{ delete_view_entry(index)}}>delete Template</button>
           </div>
         </div>
       ))}
       <br/>
-      <button onClick={handleAddRow}>Add Template</button>
-      <button onClick={()=>{saveTemplateData()}}>Save Template</button>
+      {!isAddTemplate && <button onClick={()=>{setIsAddTemplate(!isAddTemplate)}}>Add Template</button>}
+      {isAddTemplate && <TemplateEntry
+      isAddTemplate = {isAddTemplate}
+      setIsAddTemplate = {setIsAddTemplate}/>}
+      <button onClick={()=>{saveTemplateData()}}>Update Template</button>
     </div>
   );
 };

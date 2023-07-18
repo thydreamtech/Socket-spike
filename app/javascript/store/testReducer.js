@@ -16,6 +16,8 @@ export default function testReducer(state = initialState, action) {
       return dotPropImmutable.set(state, action.path, action.value)
     case "deleteData" :
       return dotPropImmutable.delete(state, `${action.path}.${action.value}`)
+      case "Add_entry" :
+        return dotPropImmutable.set(state, `${action.path}.${(_.get(state, action.path)).length}`, action.value)
     default :
       return state;
   }

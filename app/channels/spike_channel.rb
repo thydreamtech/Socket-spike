@@ -13,6 +13,8 @@ class SpikeChannel < ApplicationCable::Channel
     update_entry(data)
    when 'deleteData'
     delete_entry(data)
+   when 'Add_entry'
+    Add_entry(data)
    end
   end
 
@@ -47,22 +49,15 @@ class SpikeChannel < ApplicationCable::Channel
     puts "==============Deleted Succesfully========="
     ActionCable.server.broadcast("spike_channel", {path: data['key'], value: data['index'], type: data['type']})
   end
+
+  def Add_entry(data)
+    puts "============#{data}==================="
+    spike_data = SpikeDatum.find_by(applicationId: '1')
+    template_data = spike_data.configuration
+    puts "===============#{template_data}================"
+    eval("template_data#{data['key']}.push(#{data['data']})")
+    spike_data.update(configuration: template_data)
+    puts "==============Added Succesfully========="
+    ActionCable.server.broadcast("spike_channel", {path: data['key'], value: data['data'], type: data['type']})
+  end
 end
-
-# Spike_datum = SpikeDatum.find_by(applicationId: '1')
-# # keys = "configuration.template_entry.[0].view_entries.[0].name".split('.')
-# keys = "applicationId".split('.')
-# value = "2"
-
-# keys.each_with_index do |key, index|
-#   if key.include?('[') && key.include?(']')
-#     array_key = key[/\[(.*?)\]/m, 1].to_i
-#     nested_hash = nested_hash[array_key]
-#   else
-#     nested_hash = nested_hash[key]
-#   end
-# end
-
-# p nested_hash
-
-# Spike_datum.update("#{}": nested_hash[key])
